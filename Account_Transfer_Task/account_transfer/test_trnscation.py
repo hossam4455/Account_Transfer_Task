@@ -9,8 +9,8 @@ def test_make_transaction_valid():
     client = Client()
 
     # Set up test data
-    from_account = Account.objects.create(account_number="12345", name="John Doe", balance=1000)
-    to_account = Account.objects.create(account_number="67890", name="Jane Doe", balance=500)
+    from_account = Account.objects.create(account_number="12345", name="John Doe2", balance=1000)
+    to_account = Account.objects.create(account_number="67890", name="Jane Doe1", balance=500)
 
     form_data = {
         'from_account': from_account.id,

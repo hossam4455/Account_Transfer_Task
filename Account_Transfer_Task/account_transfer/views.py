@@ -9,7 +9,7 @@ from .models import Account, Transaction
 from .forms import TransactionForm
 from django.db import transaction as db_transaction
 from django.db.models import Q  # for complex queries
-
+from decimal import Decimal, InvalidOperation
 def upload_csv(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
         csv_file = request.FILES['csv_file']
@@ -19,11 +19,26 @@ def upload_csv(request):
             decoded_file = csv_file.read().decode('utf-8').splitlines()
             reader = csv.reader(decoded_file)
             for row in reader:
-                # Assuming the CSV has columns: account_number, name, balance
+                if not row or row[0] == 'account_number':  # Skip empty rows or header rows
+                    continue
+
+                account_number = row[0]
+                name = row[1]
+                balance_str = row[2]  # Get the balance as a string
+
+                # Skip rows where the balance is a non-numeric value like 'Balance' or other text
+                if balance_str.lower() == 'balance':  # Check if the value is a header or invalid
+                    continue
+                
+                try:
+                    balance = Decimal(balance_str)  # Convert to Decimal to ensure it's a valid number
+                except (ValueError, InvalidOperation):
+                    return HttpResponse(f"Invalid balance value for account {account_number}. Problematic balance: {balance_str}", status=400)
+                
                 Account.objects.create(
-                    account_number=row[0],
-                    name=row[1],
-                    balance=row[2]
+                    account_number=account_number,
+                    name=name,
+                    balance=balance
                 )
             return HttpResponse("CSV uploaded successfully!", status=200)
         except Exception as e:
