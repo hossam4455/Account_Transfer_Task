@@ -8,26 +8,21 @@ from decimal import Decimal
 def test_make_transaction_valid():
     client = Client()
 
-    # Create two accounts with unique account numbers
+    # Set up test data
     from_account = Account.objects.create(account_number="12345", name="John Doe", balance=1000)
     to_account = Account.objects.create(account_number="67890", name="Jane Doe", balance=500)
 
-    # Create a valid transaction form
     form_data = {
         'from_account': from_account.id,
         'to_account': to_account.id,
         'amount': 100,
     }
 
-    # Send a POST request with valid data
     response = client.post(reverse('make_transaction'), data=form_data)
 
-    # Check that the transaction was successful and the accounts' balances were updated
     from_account.refresh_from_db()
     to_account.refresh_from_db()
-    
-    assert from_account.balance == Decimal('900.00')  # Balance should decrease
-    assert to_account.balance == Decimal('600.00')  # Balance should increase
-    assert response.status_code == 302  # Redirect to success page
 
-# Ensure pytest is properly imported and configured.
+    assert from_account.balance == Decimal('900.00')
+    assert to_account.balance == Decimal('600.00')
+    assert response.status_code == 302  # Check for success redirect
